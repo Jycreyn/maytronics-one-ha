@@ -1,15 +1,15 @@
 {
   "domain": "maytronics_one",
   "name": "Maytronics One",
-  "version": "0.1.0",
+  "codeowners": ["@Jycreyn"],
   "config_flow": true,
+  "dependencies": [],
   "documentation": "https://github.com/Jycreyn/maytronics-one-ha",
+  "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/Jycreyn/maytronics-one-ha/issues",
   "requirements": [
     "awsiotsdk>=1.21.0",
     "cryptography>=3.4.0"
   ],
-  "dependencies": [],
-  "codeowners": ["@Jycreyn"],
-  "iot_class": "cloud_push"
+  "version": "0.1.0"
 }
