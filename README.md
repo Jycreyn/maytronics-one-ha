@@ -1,5 +1,9 @@
 # Maytronics One — Home Assistant Integration
 
+> [!WARNING]
+> **Work in progress — not production ready.**
+> The MQTT connection and sensor data are functional, but the start/stop commands have not yet been validated on a live robot. Use at your own risk and expect breaking changes.
+
 Custom integration for Home Assistant to control **Maytronics One** pool robots (Dolphin EON series) via the cloud API.
 
 > **Not compatible** with the MyDolphin Plus app. This integration targets the **Maytronics One** app exclusively.
