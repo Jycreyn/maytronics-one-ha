@@ -1,0 +1,25 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+*.egg-info/
+
+# Fichiers de credentials — ne jamais committer
+*.pem
+*.crt
+*.key
+*.p12
+*.bks
+maytronics_one/device.*
+maytronics_one/private.*
+
+# Notes de recherche locales
+api_research.md
+tools/
+
+# Artefacts APK
+*.apk
+
+# HA runtime
+.storage/

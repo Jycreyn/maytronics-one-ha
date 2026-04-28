@@ -1,0 +1,14 @@
+{
+  "domain": "maytronics_one",
+  "name": "Maytronics One",
+  "version": "0.1.0",
+  "config_flow": true,
+  "documentation": "https://github.com/your-repo/maytronics-ha",
+  "requirements": [
+    "awsiotsdk>=1.21.0",
+    "cryptography>=3.4.0"
+  ],
+  "dependencies": [],
+  "codeowners": [],
+  "iot_class": "cloud_push"
+}

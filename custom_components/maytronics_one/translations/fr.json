@@ -1,0 +1,36 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Maytronics One — Connexion",
+        "description": "Entrez votre adresse email Maytronics One. Un code OTP vous sera envoyé.",
+        "data": {
+          "email": "Email"
+        }
+      },
+      "otp": {
+        "title": "Code de vérification",
+        "description": "Entrez le code reçu par email sur {email}",
+        "data": {
+          "otp": "Code OTP"
+        }
+      },
+      "select_robot": {
+        "title": "Sélectionner le robot",
+        "description": "Choisissez le robot piscine à intégrer",
+        "data": {
+          "robot": "Robot"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter au serveur Maytronics",
+      "invalid_auth": "Code OTP invalide ou expiré",
+      "unknown": "Erreur inattendue"
+    },
+    "abort": {
+      "already_configured": "Ce robot est déjà configuré",
+      "no_robots": "Aucun robot trouvé sur ce compte"
+    }
+  }
+}
