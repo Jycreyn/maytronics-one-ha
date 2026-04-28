@@ -3,12 +3,13 @@
   "name": "Maytronics One",
   "version": "0.1.0",
   "config_flow": true,
-  "documentation": "https://github.com/your-repo/maytronics-ha",
+  "documentation": "https://github.com/Jycreyn/maytronics-one-ha",
+  "issue_tracker": "https://github.com/Jycreyn/maytronics-one-ha/issues",
   "requirements": [
     "awsiotsdk>=1.21.0",
     "cryptography>=3.4.0"
   ],
   "dependencies": [],
-  "codeowners": [],
+  "codeowners": ["@Jycreyn"],
   "iot_class": "cloud_push"
 }
