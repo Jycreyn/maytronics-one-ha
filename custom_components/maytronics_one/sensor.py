@@ -92,19 +92,16 @@ class MaytronicsStatusSensor(_BaseSensor):
     @property
     def native_value(self):
         state = self.coordinator.robot_state
-        if state.robot_connected is False:
-            return "offline"
         if state.error_code:
             return "error"
-        # sm (state machine) is the reliable indicator: 0=idle, non-zero=running
+        # sm (state machine): 0=idle (confirmed), 1=cleaning (confirmed)
         if state.sm_state is not None:
             return "cleaning" if state.sm_state != 0 else "idle"
-        # Fallback on mu if sm not yet received
+        # Fallback: mu=7=idle, mu=2=cleaning (confirmed)
         mu = state.status_code
         if mu is None:
             return None
-        # mu=7 observed when idle; other values TBD during a real cleaning cycle
-        return "idle" if mu == 7 else f"state_{mu}"
+        return {7: "idle", 2: "cleaning"}.get(mu, f"state_{mu}")
 
     @property
     def extra_state_attributes(self):
