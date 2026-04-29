@@ -33,6 +33,8 @@ async def async_setup_entry(
         MaytronicsCleanModeSensor(coordinator, entry, device_info),
         MaytronicsStatusSensor(coordinator, entry, device_info),
         MaytronicsCycleCountSensor(coordinator, entry, device_info),
+        MaytronicsCycleTimeSensor(coordinator, entry, device_info),
+        MaytronicsFirmwareSensor(coordinator, entry, device_info),
     ])
 
 
@@ -89,21 +91,29 @@ class MaytronicsStatusSensor(_BaseSensor):
 
     @property
     def native_value(self):
-        sc = self.coordinator.robot_state.status_code
-        if self.coordinator.robot_state.robot_connected is False:
+        state = self.coordinator.robot_state
+        if state.robot_connected is False:
             return "offline"
-        if self.coordinator.robot_state.error_code:
+        if state.error_code:
             return "error"
-        if sc is None:
+        # sm (state machine) is the reliable indicator: 0=idle, non-zero=running
+        if state.sm_state is not None:
+            return "cleaning" if state.sm_state != 0 else "idle"
+        # Fallback on mu if sm not yet received
+        mu = state.status_code
+        if mu is None:
             return None
-        mapping = {0: "idle", 1: "cleaning", 2: "lifting", 3: "error", 7: "idle"}
-        return mapping.get(sc, f"unknown_{sc}")
+        # mu=7 observed when idle; other values TBD during a real cleaning cycle
+        return "idle" if mu == 7 else f"state_{mu}"
 
     @property
     def extra_state_attributes(self):
         state = self.coordinator.robot_state
         return {
-            "status_code": state.status_code,
+            "sm_state": state.sm_state,
+            "mu_state": state.status_code,
+            "op_mode": state.clean_mode,
+            "op_type": state.op_type,
             "error_code": state.error_code,
             "robot_connected": state.robot_connected,
             "last_updated": state.last_updated,
@@ -121,3 +131,33 @@ class MaytronicsCycleCountSensor(_BaseSensor):
     @property
     def native_value(self):
         return self.coordinator.robot_state.cycle_count
+
+
+class MaytronicsCycleTimeSensor(_BaseSensor):
+    _attr_name = "Durée cycle"
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "min"
+
+    def __init__(self, coordinator, entry, device_info):
+        super().__init__(coordinator, entry, device_info, "cycle_time")
+
+    @property
+    def native_value(self):
+        return self.coordinator.robot_state.cycle_time
+
+
+class MaytronicsFirmwareSensor(_BaseSensor):
+    _attr_name = "Firmware"
+    _attr_entity_category = None
+
+    def __init__(self, coordinator, entry, device_info):
+        super().__init__(coordinator, entry, device_info, "firmware")
+
+    @property
+    def native_value(self):
+        return self.coordinator.robot_state.fw_sm
+
+    @property
+    def extra_state_attributes(self):
+        state = self.coordinator.robot_state
+        return {"wifi_firmware": state.fw_wifi}

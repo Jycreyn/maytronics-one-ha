@@ -44,10 +44,19 @@ class RobotState:
         self.is_charging: bool = False
         self.battery_level: int | None = None
         self.clean_mode: str | None = None
+        self.op_type: int | None = None
+        self.cycle_time: int | None = None
+        self.sm_state: int | None = None
         self.status_code: int | None = None
         self.error_code: int | None = None
         self.cycle_count: int | None = None
         self.robot_connected: bool | None = None
+        # From Search shadow
+        self.fw_sm: str | None = None
+        self.fw_wifi: str | None = None
+        # From Config shadow
+        self.suction_power: int | None = None
+        self.favorite_cleaning_type: int | None = None
         self.raw: dict[str, Any] = {}
         self.last_updated: float = 0.0
         self.connected: bool = False
@@ -56,34 +65,14 @@ class RobotState:
         self.raw[topic] = payload
         self.last_updated = time.time()
 
-        # Champs connus (à affiner selon les vrais messages)
-        if "statusCode" in payload:
-            sc = int(payload["statusCode"])
-            self.status_code = sc
-            # statusCode: 0=idle, 1=cleaning, 2=lifting, 3=error (à valider)
-            self.is_cleaning = sc == 1
-        if "errorCode" in payload:
-            self.error_code = int(payload["errorCode"])
-        if "clean_mode" in payload:
-            self.clean_mode = str(payload["clean_mode"])
-        if "cleanMode" in payload:
-            self.clean_mode = str(payload["cleanMode"])
-        if "absolute_state_of_charge" in payload:
-            self.battery_level = int(payload["absolute_state_of_charge"])
-        if "absoluteStateOfCharge" in payload:
-            self.battery_level = int(payload["absoluteStateOfCharge"])
-        if "level" in payload:
-            self.battery_level = int(payload["level"])
-        if "cleaningCycle" in payload:
-            self.cycle_count = int(payload["cleaningCycle"])
-        # Détection charge: si le robot n'est pas en nettoyage et batterie augmente
-        # (champ exact TBD selon messages reçus)
-        if "isCharging" in payload:
-            self.is_charging = bool(payload["isCharging"])
-        if "charging" in payload:
-            self.is_charging = bool(payload["charging"])
         if "isConnected" in payload:
             self.robot_connected = bool(payload["isConnected"])
+        if "isCharging" in payload:
+            self.is_charging = bool(payload["isCharging"])
+        if "fault" in payload:
+            self.error_code = int(payload["fault"])
+        if "cleaningCycle" in payload:
+            self.cycle_count = int(payload["cleaningCycle"])
 
         system_state = payload.get("systemState")
         if isinstance(system_state, dict):
@@ -93,19 +82,37 @@ class RobotState:
                     self.battery_level = battery
             if "mu" in system_state:
                 self.status_code = int(system_state["mu"])
+            if "sm" in system_state:
+                self.sm_state = int(system_state["sm"])
+                # sm=0 confirmed idle, sm!=0 means robot is running a cycle
+                self.is_cleaning = self.sm_state != 0
 
         cycle_info = payload.get("cycleInfo")
         if isinstance(cycle_info, dict):
             if "opMode" in cycle_info:
                 op_mode = int(cycle_info["opMode"])
                 self.clean_mode = f"op_mode_{op_mode}"
-                self.status_code = op_mode
-                self.is_cleaning = op_mode != 0
             if "opType" in cycle_info:
-                self.raw[f"{topic}#opType"] = cycle_info["opType"]
+                self.op_type = int(cycle_info["opType"])
+            if "time" in cycle_info:
+                self.cycle_time = int(cycle_info["time"])
 
-        if "fault" in payload:
-            self.error_code = int(payload["fault"])
+        # Search shadow: firmware versions
+        versions = payload.get("versions")
+        if isinstance(versions, dict):
+            sm_ver = versions.get("sm", {})
+            if isinstance(sm_ver, dict) and "swMajor" in sm_ver:
+                self.fw_sm = f"{sm_ver['swMajor']}.{sm_ver['swMinor']}"
+            if "wi-fi" in versions:
+                self.fw_wifi = str(versions["wi-fi"])
+
+        # Config shadow: user preferences
+        eco = payload.get("eco")
+        if isinstance(eco, dict):
+            if "SuctionPower" in eco:
+                self.suction_power = int(eco["SuctionPower"])
+        if "favoriteCleaningType" in payload:
+            self.favorite_cleaning_type = int(payload["favoriteCleaningType"])
 
 
 class MaytronicsCoordinator(DataUpdateCoordinator):
